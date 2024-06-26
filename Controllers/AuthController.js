@@ -3,7 +3,7 @@ import { errorHandler } from "../Utils/Error.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-
+import nodemailer from "../Services/NodeMailer.js";
 dotenv.config();
 
 //signUp User 
@@ -66,13 +66,14 @@ export const googleAuth = async(req,res,next) => {
         return next(errorHandler(400, "All the Fields Are Required"));
       }
       try {
-        const user = await User.findOne({email});
+        const user = await User.findOne({email})
         if(user){
             // User found, generate JWT token
             const token = jwt.sign({ id: user._id}, process.env.JWT_SECRET_KEY);
             // Remove sensitive data from user object
             const { password: passkey, ...rest } = user._doc;
             // Respond with token and user data
+            console.log(rest);
             return res.status(200).json({ message: "User LoggedIn Successfully", rest, token });
         }else{
             // User not found, create a new user
@@ -94,9 +95,47 @@ export const googleAuth = async(req,res,next) => {
               // Remove sensitive data from user object
               const { password: passkey, ...rest } = user._doc;
               // Respond with token and user data
+              console.log(rest);
               return res.status(200).json({ message: "User LoggedIn Successfully", rest, token });
         }
       } catch (error) {
         next(error);
       }
 };
+
+//Forgot Password
+export const forgotPassword = async(req,res)=>{
+  const {user_email} = req.body;
+  const user = await User.findOne({ email: user_email });
+  if(!user){
+      return res.status(401).json({Message:"User Not found"});
+  }
+  const token = jwt.sign({_id:user._id},process.env.JWT_SECRET_KEY,{expiresIn:"1h"})
+  
+  try {
+      await nodemailer(user,token,res);
+  } catch (error) {
+      console.error("Error sending email:", error);
+      res.status(500).json({ message: "Internal Server in forget password Error" });
+  }
+}
+
+// reset password
+export const resetPassword = async(req,res)=>{
+  const {id,token} = req.params
+  const {password} = req.body;
+  jwt.verify(token,process.env.JWT_SECRET_KEY,(err,decoded)=>{
+  if(err){
+      return res.status(401).json({Message:"Invalid Token"});
+  }
+  else{
+      bcrypt.hash(password,10)
+      .then(hash =>{
+          User.findByIdAndUpdate({_id:id},{password:hash})
+              .then(ele=>res.send({status:"success"}))
+              .catch(err=>res.send({status:err}))
+      })
+      .catch(err=>res.send({status:err}))
+  }
+  })
+}

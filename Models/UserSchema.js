@@ -17,8 +17,8 @@ const user_Schema = mongoose.Schema({
     },
     role:{
         type:String,
-        required:true,
-        default:"guest"
+        default:"guest",
+        required: true
     },
     profilePic:{
         type:String,
@@ -48,6 +48,14 @@ const user_Schema = mongoose.Schema({
     address:{
         type:String,
         default:""
+    },
+    taskCompleted:{
+        type:[mongoose.Schema.Types.ObjectId],
+        ref:"Task",
+    },
+    taskPending:{
+        type:[mongoose.Schema.Types.ObjectId],
+        ref:"Task",
     }
 },{timestamps:true});
 const User = mongoose.model("User",user_Schema);

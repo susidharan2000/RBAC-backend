@@ -50,19 +50,18 @@ export const updateProfile = async(req,res,next)=>{
             return next(errorHandler(500,error.message));
         }
 }
+//get all users
 export const getallusers = async (req, res,next) =>{
-    try{
+    try {
         const allusers = await User.find();
         if (allusers.length === 0) {
             return res.status(404).json({ Message: "No Users Found" });
         }
         const userslist = allusers.filter((user) => user._id.toString() !== req.user.id.toString());
-        //console.log(userslist); 
-
+        //console.log(userslist);
         res.status(200).json({ Message: "All Users", result: userslist });
-    }
-    catch(error){
-        return next(errorHandler(500,error.message));
+    } catch (error) {
+        return next(errorHandler(500, error.message));
     }
 }
 //get userby ID
@@ -113,3 +112,14 @@ export const searchuser = async (req, res, next) => {
       return next(errorHandler(500, error.message));
     }
   };
+  //Get Role
+  export const getrole = async (req, res, next) => {
+    try {
+      const role = await Role.find();
+      res.status(200).json({ Message: "Role Found", role });
+    } catch (error) {
+      return next(errorHandler(500, error.message));
+    }
+  };
+
+  
