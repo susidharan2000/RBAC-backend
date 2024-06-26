@@ -115,7 +115,7 @@ export const searchuser = async (req, res, next) => {
   //Get Role
   export const getrole = async (req, res, next) => {
     try {
-      const role = await Role.find();
+      const role = await User.find();
       res.status(200).json({ Message: "Role Found", role });
     } catch (error) {
       return next(errorHandler(500, error.message));
