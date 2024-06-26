@@ -20,7 +20,7 @@ var mailOptions = {
           subject:"Password Reset",
           text:"You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n" +
           "Please click on the following link, or paste this into your browser to complete the process:\n\n" +
-          `http://localhost:3000/reset-password/${user._id}/${token}`
+          `https://rbac-tech-app.netlify.app/reset-password/${user._id}/${token}`
 }
 
 transporter.sendMail(mailOptions,function(error,info){
