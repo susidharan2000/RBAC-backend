@@ -17,7 +17,7 @@ const user_Schema = mongoose.Schema({
     },
     role:{
         type:String,
-        default:"guest",
+        default:"admin",
         required: true
     },
     profilePic:{
