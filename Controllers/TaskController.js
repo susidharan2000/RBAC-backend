@@ -1,10 +1,17 @@
 import { errorHandler } from "../Utils/Error.js";
 import User from "../Models/UserSchema.js";
 import Task from "../Models/TaskSchema.js";
+import Projects from "../Models/ProjectsSchema.js";
 //Create Task
 export const createTask = async (req, res, next) => {
     try {
         const id = req.params.id;
+        const projectId = req.params.projectId;
+        const project = await Projects.findById(projectId);
+        //console.log(project);
+      if (!project) {
+        return res.status(404).json({ message: "Project Not Found" });
+      }
       const { title,category , description } = req.body;
       if (!title || !description || !category) {
         return next(errorHandler(400, "All the Fields Are Required"));
@@ -22,6 +29,10 @@ export const createTask = async (req, res, next) => {
       const user = await User.findById(id);
       user.taskPending.push(newTask._id);
       await user.save();
+      //updating in project data
+      project.tasks.push(newTask._id);
+      await project.save();
+      //response
       res.status(200).json({ Message: "Task Created Successfully" });
     } catch (error) {
       return next(errorHandler(500, error.message));
@@ -78,3 +89,40 @@ export const createTask = async (req, res, next) => {
       return next(errorHandler(500, error.message));
     }
   };
+
+  //get PM task
+  export const getPMTask = async (req, res, next) => {
+    try {
+      const projects = await Projects.find({ projectManager: req.params.id });
+
+      if (!projects || projects.length === 0) {
+        return res.status(404).json({ message: "No projects found for this project manager" });
+      }
+      const taskIds = [];
+      projects.forEach(project => {
+        if (project.tasks) {
+          taskIds.push(...project.tasks);
+        }
+      });
+      const tasks = await Task.find({ _id: { $in: taskIds } });
+      res.status(200).json({ message: "Tasks found", tasks });
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  //get project tasks
+  export const getProjectTasks = async (req, res, next) => {
+      try {
+        const projects = await Projects.findById(req.params.id);
+    if (!projects.tasks) {
+      return res.status(404).json({ message: "No tasks found for this project" });
+    }
+    const tasks = await Task.find({ _id: { $in: projects.tasks } });
+        res.status(200).json({ message: "Tasks found", tasks });
+      } catch (error) {
+        return next(errorHandler(500, error.message));
+      }
+    };
+  
+  

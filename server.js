@@ -5,6 +5,8 @@ import ConnectDB from "./database/Config.js"
 import AuthRouter from './Routers/AuthRouter.js';
 import UserRouter from './Routers/UserRouter.js';
 import TaskRouter from './Routers/TaskRouter.js';
+import ChatRouter from './Routers/ChatRouter.js';
+import ProjectRouter from './Routers/ProjectRouter.js';
 dotenv.config();
 const app = express();
 app.use(cors());
@@ -37,6 +39,10 @@ app.use('/api/user',AuthRouter);
 app.use('/api/user',UserRouter);
 //task routes
 app.use('/api/task',TaskRouter);
+//chat routes
+app.use('/api/chat',ChatRouter);
+//project routes
+app.use('/api/project',ProjectRouter);
 
 app.listen(port,()=>{
     console.log("App is running",port);

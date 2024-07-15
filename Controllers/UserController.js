@@ -121,5 +121,16 @@ export const searchuser = async (req, res, next) => {
       return next(errorHandler(500, error.message));
     }
   };
+  //get User
+  export const getuser = async (req, res, next) => {
+    try {
+      const user = await User.find();
+      if (!user) {
+        return res.status(404).json({ message: "User Not Found" });
+      }
+      res.status(200).json({ Message: "User Found", user });
+    } catch (error) {
+      return next(errorHandler(500, error.message));
+    }
+  };
 
-  
