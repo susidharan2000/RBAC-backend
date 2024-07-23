@@ -8,6 +8,11 @@ const chat_Schema = mongoose.Schema({
         type:Boolean,
         default:false
     },
+    GroupPic:{
+        type:String,
+        required:true,
+        default:"https://cdn.pixabay.com/photo/2019/10/30/15/19/team-4589798_640.jpg"
+    },
     users:[{
         type:mongoose.Schema.Types.ObjectId,
                 ref:"User"
