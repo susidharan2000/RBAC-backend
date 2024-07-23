@@ -1,5 +1,5 @@
 import express from "express";
-import { Server } from 'socket.io';
+import { Server as SocketIO } from 'socket.io';
 import { createServer } from 'http';
 import cors from "cors";
 import dotenv from "dotenv";
@@ -15,52 +15,47 @@ dotenv.config();
 
 const app = express();
 const httpserver = createServer(app);
-const socket = new Server(httpserver, {
-    cors: {
-        origin: "*",  // Adjust this to your client's URL
+const io = new SocketIO(
+    httpserver,
+    {
+        cors: {
+            origin: "*",  // Adjust this to your client's URL
+        },
     },
-});
+);
 
-socket.on('connection', (socket) => {
-    console.log(socket.id);
-    //checking socket
-    /* socket.on('setup', (userData) => {
-        socket.join(userData._id)
-        //console.log(userData._id);
-        socket.emit('connected');
-    }); */
-    
-    // join chat
+// Socket.IO handling
+io.on('connection', (socket) => {
+    console.log(`Socket connected: ${socket.id}`);
+
+    // Join a chat room
     socket.on('join-chat', (room) => {
         socket.join(room);
-        console.log("user Joined room:",room);
+        console.log(`User joined room: ${room}`);
     });
 
-    //
-    socket.on('new-message', (newMessageRecivied) => {
-        const chat = newMessageRecivied.chat;
-    
+    // Send and receive messages
+    socket.on('new-message', (newMessageReceived) => {
+        console.log(newMessageReceived);
+        const chat = newMessageReceived.chat;
         if (!chat.users) {
             console.log("Users are not defined in the chat object.");
             return;
         }
-    
-        chat.users.forEach(user => {
-            if (user._id === newMessageRecivied.sender._id) {
-                return; 
-            }
-            socket.emit('message',newMessageRecivied);
-            socket.to(user._id).emit("message-Recivied", newMessageRecivied);
-            console.log(`Message sent to user ${user._id}`);
-        });
+        io.to(chat._id).emit("message-Received", newMessageReceived);
     });
-    
+
+    // Disconnect handling
+    socket.on('disconnect', () => {
+        console.log(`Socket disconnected: ${socket.id}`);
+    });
 });
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Error handler
+// Error handler middleware
 app.use((err, req, res, next) => {
     const statusCode = err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -71,11 +66,10 @@ app.use((err, req, res, next) => {
     });
 });
 
+// Connect to MongoDB
 ConnectDB();
 
-const port = process.env.PORT || 4000; // Set a default port if not provided
-
-// Default Route
+// Routes
 app.get("/", (req, res) => {
     res.status(200).send("API is running");
 });
@@ -88,6 +82,8 @@ app.use('/api/chat', ChatRouter);
 app.use('/api/message', MessageRouter);
 app.use('/api/project', ProjectRouter);
 
+// Start server
+const port = process.env.PORT || 4000;
 httpserver.listen(port, () => {
-    console.log(`App is running on port ${port}`);
+    console.log(`Server is running on port ${port}`);
 });
